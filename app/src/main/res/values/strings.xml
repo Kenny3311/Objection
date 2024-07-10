@@ -1,5 +1,11 @@
 <resources>
-    <string name="app_name">My Application</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="app_name">Objection</string>
+    <string-array name="VoiceClip">
+        <item>Objection</item>
+        <item>Take That</item>
+    </string-array>
+    <string-array name="BGM">
+        <item>Objection</item>
+        <item>Pursuit</item>
+    </string-array>
 </resources>

@@ -1,9 +1,13 @@
 package com.example.myapplication;
 
 import android.os.Bundle;
+import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -13,14 +17,15 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.myapplication.databinding.ActivityMainBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
-    ActivityMainBinding binding;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        replaceFragment(new HomeFragment());
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -28,24 +33,44 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Fragment selectedFragment = null;
+                int itemID = item.getItemId();
+                if(itemID == R.id.home){
+                    selectedFragment = new HomeFragment();
+                } else if (itemID == R.id.script){
+                    selectedFragment = new ScriptFragment();
+                } else if (itemID == R.id.setting) {
+                    selectedFragment = new SettingFragment();
+                }
 
-        binding.bottomNavigationView.setOnItemSelectedListener(item -> {
-            if(item.getItemId() == R.id.home){
-                replaceFragment(new HomeFragment());
-            }else if(item.getItemId()==R.id.script){
-                replaceFragment(new ScriptFragment());
-            } else if (item.getItemId()== R.id.setting) {
-                replaceFragment(new SettingFragment());
+                if (selectedFragment != null) {
+                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.frameLayout, selectedFragment);
+                    transaction.commit();
+                }
+                return true;
             }
-            return true;
         });
+
+        // Set the default selected item
+        bottomNavigationView.setSelectedItemId(R.id.home);
+
+
+
     }
-    private void replaceFragment(Fragment fragment){
+    private void replaceFragment(Fragment fragment, boolean isAppInitialized){
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.frameLayout,fragment);
+        if(isAppInitialized){
+            fragmentTransaction.add(R.id.frameLayout , fragment);
+        }else {
+            fragmentTransaction.replace(R.id.frameLayout,fragment);
+        }
+
         fragmentTransaction.commit();
     }
 }
