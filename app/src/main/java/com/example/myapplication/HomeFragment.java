@@ -1,8 +1,5 @@
 package com.example.myapplication;
 
-import static android.view.KeyCharacterMap.ALPHA;
-import static androidx.core.content.ContextCompat.getSystemService;
-
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -16,14 +13,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
-import android.os.Parcel;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.Spinner;
-import android.widget.TableLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -34,27 +30,24 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     Button btnVoice,btnBgm,btnStop,btnPlay;
     Spinner voiceSpinner,bgmSpinner;
     SensorManager sensorManager;
+    SeekBar seekBar;
     Sensor sensor;
-    private SensorEventListener sensorEventListener;
     Toast toast;
     private float[] gravity = new float[3];
     private static final float ALPHA = 0.2f;
     private boolean isFunctionActive = true;
-    private float trigerForce = 0.008f;
+    private float triggerForce = 0.004f;
     private boolean isSensorActivated =false;
+    final List<MediaPlayer> musicList = new ArrayList<>();
+    private boolean isBgmPlaying = false;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         //init
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         init(view);
-        final List<MediaPlayer> musicList = new ArrayList<>();
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                isFunctionActive = false;
-            }
-        }, 1000);
+
+
         //function
         btnVoice.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -72,7 +65,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                 }
                 if (music != null) {
                     musicList.add(music);
-                    Toast.makeText(getActivity(), "make sound", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getActivity(), "make sound", Toast.LENGTH_SHORT).show();
                     music.start();
                 }
             }
@@ -116,19 +109,40 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                 }
             }
         });
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                triggerForce = (float) (0.004f+0.004f*(Math.pow(progress,4)));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                //Toast.makeText(getActivity(),"Progress: "+String.valueOf(trigerForce),Toast.LENGTH_SHORT).show();
+
+            }
+        });
         btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isSensorActivated) {
-                    disableSensor();
-                } else {
-                    enableSensor();
-                }
+                isSensorActivated = true;
+                btnStop.setEnabled(true);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        isFunctionActive = false;
+                    }
+                }, 1000);
             }
         });
         btnStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                isSensorActivated = false;
                 for (MediaPlayer mediaPlayer : musicList) {
                     if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                         mediaPlayer.stop();
@@ -138,6 +152,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                 }
                 musicList.clear();
                 btnStop.setEnabled(false);
+                isBgmPlaying = false;
             }
         });
         return view;
@@ -153,53 +168,42 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         btnPlay = view.findViewById(R.id.btnPlay);
         voiceSpinner = view.findViewById(R.id.VoiceSpinner);
         bgmSpinner = view.findViewById(R.id.BGMspinner);
-
+        seekBar = view.findViewById(R.id.seekBar);
     }
     @Override
     public void onDestroy() {
         super.onDestroy();
-        sensorManager.unregisterListener(this);
+
     }
-    @Override
-    public void onResume() {
-        super.onResume();
-        sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
-    }
+
 
     @Override
     public void onPause() {
         super.onPause();
-        sensorManager.unregisterListener(this);
-    }
-    private void enableSensor() {
-        if (!isSensorActivated) {
-            sensorManager.registerListener(sensorEventListener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
-            isSensorActivated = true;
-        }
+
     }
 
-    private void disableSensor() {
-        if (isSensorActivated) {
-            sensorManager.unregisterListener(sensorEventListener);
-            isSensorActivated = false;
-        }
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Optionally re-enable sensor here if needed
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        float[] values = event.values;
-        float[] filteredValues = lowPassFilter(values);
-        float x = filteredValues[0];
-        float y = filteredValues[1];
-        float z = filteredValues[2];
-        Log.d("sensor",String.format("%f,%f,%f",x,y,z));
-        // Calculate the acceleration magnitude
-        float magnitude = (float) Math.sqrt(x * x + y * y + z * z);
+        if (isSensorActivated) {
+            float[] values = event.values;
+            float[] filteredValues = lowPassFilter(values);
+            float x = filteredValues[0];
+            float y = filteredValues[1];
+            float z = filteredValues[2];
+            Log.d("sensor",String.format("%f,%f,%f,%f",x,y,z, triggerForce));
 
-        // Detect tap based on threshold and time interval
-        if (Math.abs(x) >= trigerForce || Math.abs(y) >= trigerForce || Math.abs(z) >= trigerForce) {
-            onTableTapped();
+            // Detect tap based on threshold and time interval
+            if (Math.abs(x) >= triggerForce || Math.abs(y) >= triggerForce || Math.abs(z) >= triggerForce) {
+                onTableTapped();
+            }
         }
     }
 
@@ -219,6 +223,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         return output;
     }
     private void onTableTapped() {
+
         if (!isFunctionActive) {
             // Set the flag to true to prevent reactivation for 1 second
             isFunctionActive = true;
@@ -227,6 +232,49 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                 toast.cancel();
             }
             toast = Toast.makeText(getActivity(), "Table tapped", Toast.LENGTH_SHORT);
+            //Voice
+            MediaPlayer voicePlayer;
+            switch (voiceSpinner.getSelectedItem().toString()) {
+                case "Igiari":
+                    voicePlayer = MediaPlayer.create(getActivity(), R.raw.igiari);
+                    break;
+                case "Matta":
+                    voicePlayer = MediaPlayer.create(getActivity(), R.raw.matta);
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + voiceSpinner.getSelectedItem().toString());
+            }
+            if (voicePlayer != null) {
+                musicList.add(voicePlayer);
+                //Toast.makeText(getActivity(), "make sound", Toast.LENGTH_SHORT).show();
+                voicePlayer.start();
+                voicePlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        if (!isBgmPlaying) {
+                            MediaPlayer bgmPlayer;
+                            switch (bgmSpinner.getSelectedItem().toString()) {
+                                case "Objection-2001":
+                                    bgmPlayer = MediaPlayer.create(getActivity(), R.raw.objection_2001);
+                                    break;
+                                case "Pursuit":
+                                    bgmPlayer = MediaPlayer.create(getActivity(), R.raw.pursuit_cornered);
+                                    break;
+                                default:
+                                    throw new IllegalStateException("Unexpected value: " + bgmSpinner.getSelectedItem().toString());
+                            }
+                            if (bgmPlayer != null) {
+                                bgmPlayer.setLooping(true);
+                                musicList.add(bgmPlayer);
+                                bgmPlayer.start();
+                                btnStop.setEnabled(true);
+                                isBgmPlaying = true; // Set the flag to true when BGM starts playing
+
+                            }
+                        }
+                    }
+                });
+            }
             toast.show();
             new Handler().postDelayed(new Runnable() {
                 @Override
