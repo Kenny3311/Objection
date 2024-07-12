@@ -40,6 +40,9 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     private boolean isSensorActivated =false;
     final List<MediaPlayer> musicList = new ArrayList<>();
     private boolean isBgmPlaying = false;
+    private MediaPlayer currentVoicePlayer = null;
+    private MediaPlayer currentBgmPlayer = null;
+    private String bgmname ="";
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -223,58 +226,59 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         return output;
     }
     private void onTableTapped() {
-
         if (!isFunctionActive) {
             // Set the flag to true to prevent reactivation for 1 second
             isFunctionActive = true;
-            // Replace this with your desired function
+
+            // Cancel any existing toast
             if (toast != null) {
                 toast.cancel();
             }
             toast = Toast.makeText(getActivity(), "Table tapped", Toast.LENGTH_SHORT);
-            //Voice
-            MediaPlayer voicePlayer;
-            switch (voiceSpinner.getSelectedItem().toString()) {
-                case "Igiari":
-                    voicePlayer = MediaPlayer.create(getActivity(), R.raw.igiari);
-                    break;
-                case "Matta":
-                    voicePlayer = MediaPlayer.create(getActivity(), R.raw.matta);
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + voiceSpinner.getSelectedItem().toString());
+
+            // Stop and release all currently playing MediaPlayer instances
+            String bgmNow=bgmSpinner.getSelectedItem().toString();
+            if (!bgmNow.equals(bgmname)) {
+                stopAndReleaseAllPlayers();
+                bgmname=bgmNow;
             }
+
+            // Voice
+            String selectedVoice = voiceSpinner.getSelectedItem().toString();
+            MediaPlayer voicePlayer = getVoicePlayer(selectedVoice);
             if (voicePlayer != null) {
+                currentVoicePlayer = voicePlayer;
                 musicList.add(voicePlayer);
-                //Toast.makeText(getActivity(), "make sound", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), "Playing voice", Toast.LENGTH_SHORT).show();
                 voicePlayer.start();
                 voicePlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                     @Override
                     public void onCompletion(MediaPlayer mp) {
+                        currentVoicePlayer = null;
+                        // BGM
                         if (!isBgmPlaying) {
-                            MediaPlayer bgmPlayer;
-                            switch (bgmSpinner.getSelectedItem().toString()) {
-                                case "Objection-2001":
-                                    bgmPlayer = MediaPlayer.create(getActivity(), R.raw.objection_2001);
-                                    break;
-                                case "Pursuit":
-                                    bgmPlayer = MediaPlayer.create(getActivity(), R.raw.pursuit_cornered);
-                                    break;
-                                default:
-                                    throw new IllegalStateException("Unexpected value: " + bgmSpinner.getSelectedItem().toString());
-                            }
+                            String selectedBgm = bgmSpinner.getSelectedItem().toString();
+                            MediaPlayer bgmPlayer = getBgmPlayer(selectedBgm);
                             if (bgmPlayer != null) {
                                 bgmPlayer.setLooping(true);
                                 musicList.add(bgmPlayer);
                                 bgmPlayer.start();
                                 btnStop.setEnabled(true);
-                                isBgmPlaying = true; // Set the flag to true when BGM starts playing
-
+                                isBgmPlaying = true;
+                                currentBgmPlayer = bgmPlayer;
+                                bgmPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                    @Override
+                                    public void onCompletion(MediaPlayer mp) {
+                                        isBgmPlaying = false;
+                                        currentBgmPlayer = null;
+                                    }
+                                });
                             }
                         }
                     }
                 });
             }
+
             toast.show();
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -282,6 +286,41 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                     isFunctionActive = false;
                 }
             }, 1000);
+        }
+    }
+
+    private void stopAndReleaseAllPlayers() {
+        for (MediaPlayer player : musicList) {
+            if (player != null) {
+                player.stop();
+                player.release();
+            }
+        }
+        musicList.clear();
+        isBgmPlaying = false;
+        currentVoicePlayer = null;
+        currentBgmPlayer = null;
+    }
+
+    private MediaPlayer getVoicePlayer(String voice) {
+        switch (voice) {
+            case "Igiari":
+                return MediaPlayer.create(getActivity(), R.raw.igiari);
+            case "Matta":
+                return MediaPlayer.create(getActivity(), R.raw.matta);
+            default:
+                throw new IllegalStateException("Unexpected value: " + voice);
+        }
+    }
+
+    private MediaPlayer getBgmPlayer(String bgm) {
+        switch (bgm) {
+            case "Objection-2001":
+                return MediaPlayer.create(getActivity(), R.raw.objection_2001);
+            case "Pursuit":
+                return MediaPlayer.create(getActivity(), R.raw.pursuit_cornered);
+            default:
+                throw new IllegalStateException("Unexpected value: " + bgm);
         }
     }
 
