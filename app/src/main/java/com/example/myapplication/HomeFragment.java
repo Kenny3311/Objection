@@ -41,6 +41,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     private boolean isBgmPlaying = false;
     private MediaPlayer currentVoicePlayer = null;
     private MediaPlayer currentBgmPlayer = null;
+    private String previousBgm = "";
 
     @Nullable
     @Override
@@ -203,10 +204,10 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             if (toast != null) {
                 toast.cancel();
             }
-            //toast = Toast.makeText(getActivity(), "Table tapped", Toast.LENGTH_SHORT);
 
             // Voice
             String selectedVoice = voiceSpinner.getSelectedItem().toString();
+            String selectedBgm = bgmSpinner.getSelectedItem().toString();
             if (!selectedVoice.equals("None")) {
                 MediaPlayer voicePlayer = getVoicePlayer(selectedVoice);
                 if (voicePlayer != null) {
@@ -216,40 +217,35 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                     voicePlayer.start();
                     voicePlayer.setOnCompletionListener(mp -> {
                         currentVoicePlayer = null;
-                        stopAndReleaseAllPlayers(); // Stop all audio when voice played
-                        playBgmIfSelected(); // Play the selected BGM
+                        if (!selectedBgm.equals(previousBgm)){
+                            stopAndReleaseAllPlayers(); // Stop all audio when voice played
+                        }
+                        playBgmIfSelected(selectedBgm); // Play the selected BGM
                     });
                 }
             } else {
-                stopAndReleaseAllPlayers();
-                playBgmIfSelected(); // Play the selected BGM if no voice is selected
+                if (!selectedBgm.equals(previousBgm)) {
+                    stopAndReleaseAllPlayers();
+                }
+                playBgmIfSelected(selectedBgm); // Play the selected BGM if no voice is selected
             }
 
             new Handler().postDelayed(() -> isFunctionActive = false, 1000);
         }
     }
 
-    private void playBgmIfSelected() {
-        String selectedBgm = bgmSpinner.getSelectedItem().toString();
-        if (!selectedBgm.equals("None")) {
-            MediaPlayer bgmPlayer = getBgmPlayer(selectedBgm);
-            if (bgmPlayer != null) {
-                bgmPlayer.setLooping(true);
-                musicList.add(bgmPlayer);
-                bgmPlayer.start();
-                btnStop.setEnabled(true);
-                isBgmPlaying = true;
-                currentBgmPlayer = bgmPlayer;
-                bgmPlayer.setOnCompletionListener(mp1 -> {
-                    isBgmPlaying = false;
-                    currentBgmPlayer = null;
-                });
-            }
-        }
-    }
-
     private void playBgmIfSelected(String selectedBgm) {
-        if (!selectedBgm.equals("None") && !isBgmPlaying) {
+
+        // Check if the selected BGM is the same as the currently playing BGM
+        if (!selectedBgm.equals("None") && (!isBgmPlaying || !selectedBgm.equals(previousBgm))) {
+            // Stop and release current BGM if it's different
+            if (currentBgmPlayer != null) {
+                currentBgmPlayer.stop();
+                currentBgmPlayer.release();
+                isBgmPlaying = false;
+                currentBgmPlayer = null;
+            }
+
             MediaPlayer bgmPlayer = getBgmPlayer(selectedBgm);
             if (bgmPlayer != null) {
                 bgmPlayer.setLooping(true);
@@ -258,6 +254,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                 btnStop.setEnabled(true);
                 isBgmPlaying = true;
                 currentBgmPlayer = bgmPlayer;
+                previousBgm = selectedBgm;
                 bgmPlayer.setOnCompletionListener(mp1 -> {
                     isBgmPlaying = false;
                     currentBgmPlayer = null;
