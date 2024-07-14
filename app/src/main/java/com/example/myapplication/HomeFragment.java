@@ -41,7 +41,6 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     private boolean isBgmPlaying = false;
     private MediaPlayer currentVoicePlayer = null;
     private MediaPlayer currentBgmPlayer = null;
-    private String previousBgm = "";
 
     @Nullable
     @Override
@@ -206,18 +205,6 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             }
             //toast = Toast.makeText(getActivity(), "Table tapped", Toast.LENGTH_SHORT);
 
-            // Stop and release BGM if it's changed or set to "None"
-            String selectedBgm = bgmSpinner.getSelectedItem().toString();
-            if (!selectedBgm.equals(previousBgm) || selectedBgm.equals("None")) {
-                if (currentBgmPlayer != null) {
-                    currentBgmPlayer.stop();
-                    currentBgmPlayer.release();
-                    isBgmPlaying = false;
-                    currentBgmPlayer = null;
-                }
-                previousBgm = selectedBgm;
-            }
-
             // Voice
             String selectedVoice = voiceSpinner.getSelectedItem().toString();
             if (!selectedVoice.equals("None")) {
@@ -229,42 +216,53 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                     voicePlayer.start();
                     voicePlayer.setOnCompletionListener(mp -> {
                         currentVoicePlayer = null;
-                        // BGM
-                        if (!selectedBgm.equals("None") && !isBgmPlaying) {
-                            MediaPlayer bgmPlayer = getBgmPlayer(selectedBgm);
-                            if (bgmPlayer != null) {
-                                bgmPlayer.setLooping(true);
-                                musicList.add(bgmPlayer);
-                                bgmPlayer.start();
-                                btnStop.setEnabled(true);
-                                isBgmPlaying = true;
-                                currentBgmPlayer = bgmPlayer;
-                                bgmPlayer.setOnCompletionListener(mp1 -> {
-                                    isBgmPlaying = false;
-                                    currentBgmPlayer = null;
-                                });
-                            }
-                        }
+                        stopAndReleaseAllPlayers(); // Stop all audio when voice played
+                        playBgmIfSelected(); // Play the selected BGM
                     });
                 }
-            } else if (!selectedBgm.equals("None") && !isBgmPlaying) {
-                // BGM if no voice
-                MediaPlayer bgmPlayer = getBgmPlayer(selectedBgm);
-                if (bgmPlayer != null) {
-                    bgmPlayer.setLooping(true);
-                    musicList.add(bgmPlayer);
-                    bgmPlayer.start();
-                    btnStop.setEnabled(true);
-                    isBgmPlaying = true;
-                    currentBgmPlayer = bgmPlayer;
-                    bgmPlayer.setOnCompletionListener(mp -> {
-                        isBgmPlaying = false;
-                        currentBgmPlayer = null;
-                    });
-                }
+            } else {
+                stopAndReleaseAllPlayers();
+                playBgmIfSelected(); // Play the selected BGM if no voice is selected
             }
 
             new Handler().postDelayed(() -> isFunctionActive = false, 1000);
+        }
+    }
+
+    private void playBgmIfSelected() {
+        String selectedBgm = bgmSpinner.getSelectedItem().toString();
+        if (!selectedBgm.equals("None")) {
+            MediaPlayer bgmPlayer = getBgmPlayer(selectedBgm);
+            if (bgmPlayer != null) {
+                bgmPlayer.setLooping(true);
+                musicList.add(bgmPlayer);
+                bgmPlayer.start();
+                btnStop.setEnabled(true);
+                isBgmPlaying = true;
+                currentBgmPlayer = bgmPlayer;
+                bgmPlayer.setOnCompletionListener(mp1 -> {
+                    isBgmPlaying = false;
+                    currentBgmPlayer = null;
+                });
+            }
+        }
+    }
+
+    private void playBgmIfSelected(String selectedBgm) {
+        if (!selectedBgm.equals("None") && !isBgmPlaying) {
+            MediaPlayer bgmPlayer = getBgmPlayer(selectedBgm);
+            if (bgmPlayer != null) {
+                bgmPlayer.setLooping(true);
+                musicList.add(bgmPlayer);
+                bgmPlayer.start();
+                btnStop.setEnabled(true);
+                isBgmPlaying = true;
+                currentBgmPlayer = bgmPlayer;
+                bgmPlayer.setOnCompletionListener(mp1 -> {
+                    isBgmPlaying = false;
+                    currentBgmPlayer = null;
+                });
+            }
         }
     }
 
