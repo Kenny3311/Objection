@@ -2,10 +2,12 @@
     <string name="app_name">Objection</string>
     <string name="test">Test</string>
     <string-array name="VoiceClip">
+        <item>None</item>
         <item>Igiari</item>
         <item>Matta</item>
     </string-array>
     <string-array name="BGM">
+        <item>None</item>
         <item>Objection-2001</item>
         <item>Pursuit</item>
     </string-array>
