@@ -1,5 +1,10 @@
 package com.example.myapplication;
 
+import static android.content.Context.VIBRATOR_SERVICE;
+import static androidx.core.content.ContextCompat.getSystemService;
+
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -13,10 +18,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -28,6 +36,7 @@ import java.util.List;
 public class HomeFragment extends Fragment implements SensorEventListener {
     Button btnVoice, btnBgm, btnStop, btnPlay,btnPause,btnContinue;
     Spinner voiceSpinner, bgmSpinner;
+    ImageView imageView;
     SensorManager sensorManager;
     SeekBar seekBar;
     Sensor sensor;
@@ -42,6 +51,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     private MediaPlayer currentVoicePlayer = null;
     private MediaPlayer currentBgmPlayer = null;
     private String previousBgm = "";
+    Vibrator vibrator;
 
     @Nullable
     @Override
@@ -152,6 +162,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         voiceSpinner = view.findViewById(R.id.VoiceSpinner);
         bgmSpinner = view.findViewById(R.id.BGMspinner);
         seekBar = view.findViewById(R.id.seekBar);
+        imageView = view.findViewById(R.id.imageView);
     }
 
     @Override
@@ -226,14 +237,17 @@ public class HomeFragment extends Fragment implements SensorEventListener {
                 if (voicePlayer != null) {
                     currentVoicePlayer = voicePlayer;
                     musicList.add(voicePlayer);
-                    Toast.makeText(getActivity(), "Playing voice", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getActivity(), "Playing voice", Toast.LENGTH_SHORT).show();
                     voicePlayer.start();
+                    imageView.setVisibility(View.VISIBLE);
+                    shakeView(imageView);
                     voicePlayer.setOnCompletionListener(mp -> {
                         currentVoicePlayer = null;
                         if (!selectedBgm.equals(previousBgm)){
                             stopAndReleaseAllPlayers(); // Stop all audio when voice played
                         }
-                        playBgmIfSelected(selectedBgm); // Play the selected BGM
+                        imageView.setVisibility(View.GONE);
+                        playBgmIfSelected(selectedBgm);// Play the selected BGM
                     });
                 }
             } else {
@@ -288,23 +302,46 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         currentVoicePlayer = null;
         currentBgmPlayer = null;
     }
+    public void shakeView(View view) {
+        PropertyValuesHolder pvhTranslateX = PropertyValuesHolder.ofFloat(View.TRANSLATION_X, 0, 25, -25, 25, -25, 15, -15, 6, -6, 0);
+        PropertyValuesHolder pvhTranslateY = PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, 0, 15, -15, 15, -15, 10, -10, 5, -5, 0);
+        long[] timings = new long[] { 5, 30, 50, 70, 100, 100,100,100,50  };
+        int[] amplitudes = new int[] { 0,25,50,75,100,125,150,200,255 };
+        ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(view, pvhTranslateX, pvhTranslateY);
+        animator.setDuration(500); // Duration of the animation in milliseconds
+        animator.start();
+        vibrator = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
+        VibrationEffect repeatingEffect = VibrationEffect.createWaveform(timings, amplitudes, -1);
+        vibrator.vibrate(repeatingEffect);
+
+    }
 
     private MediaPlayer getVoicePlayer(String voice) {
         switch (voice) {
             case "None":
+                imageView.setImageResource(0);
                 return null;
             case "Naruhodo-Igiari":
+                imageView.setImageResource(R.drawable.igiari);
                 return MediaPlayer.create(getActivity(), R.raw.naruhodo_igiari);
             case "Naruhodo-Matta":
+                imageView.setImageResource(R.drawable.matta);
                 return MediaPlayer.create(getActivity(), R.raw.naruhodo_matta);
             case "Naruhodo-Kurae":
+                imageView.setImageResource(R.drawable.kurae);
                 return MediaPlayer.create(getActivity(),R.raw.naruhodo_kurae);
             case "Naruhodo-Objection":
+                imageView.setImageResource(R.drawable.objection);
                 return MediaPlayer.create(getActivity(),R.raw.naruhodo_objection);
             case "Naruhodo-Hold it":
+                imageView.setImageResource(R.drawable.holdit);
                 return MediaPlayer.create(getActivity(),R.raw.naruhodo_holdit);
             case "Naruhodo-Take that":
+                imageView.setImageResource(R.drawable.takethat);
                 return MediaPlayer.create(getActivity(),R.raw.naruhodo_takethat);
+            case "Table Slam":
+                imageView.setImageResource(0);
+                return MediaPlayer.create(getActivity(),R.raw.table_slam);
             default:
                 throw new IllegalStateException("Unexpected value: " + voice);
         }
