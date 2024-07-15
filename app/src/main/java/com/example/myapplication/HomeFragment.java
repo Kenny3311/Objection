@@ -26,7 +26,7 @@ import java.util.List;
 
 
 public class HomeFragment extends Fragment implements SensorEventListener {
-    Button btnVoice, btnBgm, btnStop, btnPlay;
+    Button btnVoice, btnBgm, btnStop, btnPlay,btnPause,btnContinue;
     Spinner voiceSpinner, bgmSpinner;
     SensorManager sensorManager;
     SeekBar seekBar;
@@ -109,7 +109,16 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         btnPlay.setOnClickListener(v -> {
             isSensorActivated = true;
             btnStop.setEnabled(true);
+            btnPause.setEnabled(true);
             new Handler().postDelayed(() -> isFunctionActive = false, 1000);
+        });
+        btnPause.setOnClickListener(v -> {
+            isSensorActivated = false;
+            btnContinue.setEnabled(true);
+        });
+        btnContinue.setOnClickListener(v -> {
+            isSensorActivated = true;
+            btnContinue.setEnabled(false);
         });
         btnStop.setOnClickListener(v -> {
             isSensorActivated = false;
@@ -122,6 +131,8 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             }
             musicList.clear();
             btnStop.setEnabled(false);
+            btnPause.setEnabled(false);
+            btnContinue.setEnabled(false);
             isBgmPlaying = false;
         });
         return view;
@@ -136,6 +147,8 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         btnBgm = view.findViewById(R.id.btnBGM);
         btnStop = view.findViewById(R.id.btnStop);
         btnPlay = view.findViewById(R.id.btnPlay);
+        btnPause=view.findViewById(R.id.btnPause);
+        btnContinue = view.findViewById(R.id.btnContinue);
         voiceSpinner = view.findViewById(R.id.VoiceSpinner);
         bgmSpinner = view.findViewById(R.id.BGMspinner);
         seekBar = view.findViewById(R.id.seekBar);
@@ -280,10 +293,18 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         switch (voice) {
             case "None":
                 return null;
-            case "Igiari":
-                return MediaPlayer.create(getActivity(), R.raw.igiari);
-            case "Matta":
-                return MediaPlayer.create(getActivity(), R.raw.matta);
+            case "Naruhodo-Igiari":
+                return MediaPlayer.create(getActivity(), R.raw.naruhodo_igiari);
+            case "Naruhodo-Matta":
+                return MediaPlayer.create(getActivity(), R.raw.naruhodo_matta);
+            case "Naruhodo-Kurae":
+                return MediaPlayer.create(getActivity(),R.raw.naruhodo_kurae);
+            case "Naruhodo-Objection":
+                return MediaPlayer.create(getActivity(),R.raw.naruhodo_objection);
+            case "Naruhodo-Hold it":
+                return MediaPlayer.create(getActivity(),R.raw.naruhodo_holdit);
+            case "Naruhodo-Take that":
+                return MediaPlayer.create(getActivity(),R.raw.naruhodo_takethat);
             default:
                 throw new IllegalStateException("Unexpected value: " + voice);
         }

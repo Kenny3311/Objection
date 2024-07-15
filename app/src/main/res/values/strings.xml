@@ -3,8 +3,12 @@
     <string name="test">Test</string>
     <string-array name="VoiceClip">
         <item>None</item>
-        <item>Igiari</item>
-        <item>Matta</item>
+        <item>Naruhodo-Igiari</item>
+        <item>Naruhodo-Matta</item>
+        <item>Naruhodo-Kurae</item>
+        <item>Naruhodo-Objection</item>
+        <item>Naruhodo-Hold it</item>
+        <item>Naruhodo-Take that</item>
     </string-array>
     <string-array name="BGM">
         <item>None</item>

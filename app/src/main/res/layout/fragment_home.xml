@@ -36,21 +36,21 @@
 
     <Spinner
         android:id="@+id/VoiceSpinner"
-        android:layout_width="wrap_content"
+        android:layout_width="150dp"
         android:layout_height="wrap_content"
+        android:entries="@array/VoiceClip"
         app:layout_constraintEnd_toEndOf="@+id/btnVoice"
         app:layout_constraintStart_toStartOf="@+id/btnVoice"
-        app:layout_constraintTop_toBottomOf="@+id/txtVoice"
-        android:entries="@array/VoiceClip"/>
+        app:layout_constraintTop_toBottomOf="@+id/txtVoice" />
 
     <Spinner
         android:id="@+id/BGMspinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:entries="@array/BGM"
         app:layout_constraintEnd_toEndOf="@+id/btnBGM"
         app:layout_constraintStart_toStartOf="@+id/btnBGM"
-        app:layout_constraintTop_toBottomOf="@+id/txtBGM"
-        android:entries="@array/BGM"/>
+        app:layout_constraintTop_toBottomOf="@+id/txtBGM" />
 
     <TextView
         android:id="@+id/txtBGM"
@@ -154,5 +154,29 @@
         app:layout_constraintStart_toStartOf="@+id/guideline3"
         app:layout_constraintTop_toTopOf="@+id/btnPlay"
         app:layout_constraintVertical_bias="0.0" />
+
+    <Button
+        android:id="@+id/btnPause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:enabled="false"
+        android:text="Pause"
+        app:layout_constraintEnd_toEndOf="@+id/btnPlay"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/btnPlay"
+        app:layout_constraintTop_toBottomOf="@+id/btnPlay" />
+
+    <Button
+        android:id="@+id/btnContinue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:enabled="false"
+        android:text="Continue"
+        app:layout_constraintBottom_toBottomOf="@+id/btnPause"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.3"
+        app:layout_constraintStart_toStartOf="@+id/guideline3"
+        app:layout_constraintTop_toTopOf="@+id/btnPause" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
