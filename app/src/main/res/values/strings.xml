@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Objection</string>
     <string name="test">Test</string>
+    <string name="vibration">Vibration</string>
     <string-array name="VoiceClip">
         <item>None</item>
         <item>Naruhodo-Igiari</item>
@@ -15,5 +16,9 @@
         <item>None</item>
         <item>Objection-2001</item>
         <item>Pursuit</item>
+    </string-array>
+    <string-array name="setting_item">
+        <item>Vibration</item>
+        <item>Image pop</item>
     </string-array>
 </resources>

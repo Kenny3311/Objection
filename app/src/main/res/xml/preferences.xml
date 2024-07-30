@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <SwitchPreferenceCompat
+        android:defaultValue="true"
+        android:key="@string/vibration"
+        android:title="Enable vibration"/>
+
+    <Preference
+        android:key="feedback"
+        android:title="Send feedback"
+        android:summary="Report technical issues or suggest new features"/>
+</androidx.preference.PreferenceScreen>

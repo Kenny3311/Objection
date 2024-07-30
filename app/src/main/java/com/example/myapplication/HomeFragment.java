@@ -6,6 +6,7 @@ import static androidx.core.content.ContextCompat.getSystemService;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,6 +17,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.preference.PreferenceManager;
 
 import android.os.Handler;
 import android.os.VibrationEffect;
@@ -41,7 +43,8 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     SeekBar seekBar;
     Sensor sensor;
     Toast toast;
-    private float[] gravity = new float[3];
+    private boolean isVibrationEnabled;
+    private final float[] gravity = new float[3];
     private static final float ALPHA = 0.2f;
     private boolean isFunctionActive = true;
     private float triggerForce = 0.004f;
@@ -163,6 +166,8 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         bgmSpinner = view.findViewById(R.id.BGMspinner);
         seekBar = view.findViewById(R.id.seekBar);
         imageView = view.findViewById(R.id.imageView);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        isVibrationEnabled = prefs.getBoolean(getString(R.string.vibration), true);
     }
 
     @Override
@@ -310,9 +315,11 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(view, pvhTranslateX, pvhTranslateY);
         animator.setDuration(500); // Duration of the animation in milliseconds
         animator.start();
-        vibrator = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
-        VibrationEffect repeatingEffect = VibrationEffect.createWaveform(timings, amplitudes, -1);
-        vibrator.vibrate(repeatingEffect);
+        if (isVibrationEnabled) {
+            vibrator = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
+            VibrationEffect repeatingEffect = VibrationEffect.createWaveform(timings, amplitudes, -1);
+            vibrator.vibrate(repeatingEffect);
+        }
 
     }
 
