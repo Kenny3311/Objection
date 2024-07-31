@@ -124,6 +124,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             btnStop.setEnabled(true);
             btnPause.setEnabled(true);
             new Handler().postDelayed(() -> isFunctionActive = false, 1000);
+            onResume();
         });
         btnPause.setOnClickListener(v -> {
             isSensorActivated = false;
@@ -147,28 +148,38 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             btnPause.setEnabled(false);
             btnContinue.setEnabled(false);
             isBgmPlaying = false;
+            onPause();
         });
         return view;
     }
-
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        init(view);
+    }
     private void init(View view) {
-
-        sensorManager = (SensorManager) requireActivity().getSystemService(Context.SENSOR_SERVICE);
+        Context context = requireContext();
+        sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+
         btnVoice = view.findViewById(R.id.btnVoice);
         btnBgm = view.findViewById(R.id.btnBGM);
         btnStop = view.findViewById(R.id.btnStop);
         btnPlay = view.findViewById(R.id.btnPlay);
-        btnPause=view.findViewById(R.id.btnPause);
+        btnPause = view.findViewById(R.id.btnPause);
         btnContinue = view.findViewById(R.id.btnContinue);
         voiceSpinner = view.findViewById(R.id.VoiceSpinner);
         bgmSpinner = view.findViewById(R.id.BGMspinner);
         seekBar = view.findViewById(R.id.seekBar);
         imageView = view.findViewById(R.id.imageView);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         isVibrationEnabled = prefs.getBoolean(getString(R.string.vibration), true);
+
+        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
+
 
     @Override
     public void onDestroy() {
@@ -180,13 +191,18 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     @Override
     public void onPause() {
         super.onPause();
-
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
         // Optionally re-enable sensor here if needed
+        if (sensorManager != null && sensor != null) {
+            sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
     }
 
     @Override
@@ -316,7 +332,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         animator.setDuration(500); // Duration of the animation in milliseconds
         animator.start();
         if (isVibrationEnabled) {
-            vibrator = (Vibrator) getActivity().getSystemService(VIBRATOR_SERVICE);
+            vibrator = (Vibrator) requireActivity().getSystemService(VIBRATOR_SERVICE);
             VibrationEffect repeatingEffect = VibrationEffect.createWaveform(timings, amplitudes, -1);
             vibrator.vibrate(repeatingEffect);
         }

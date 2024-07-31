@@ -16,7 +16,7 @@ public class SettingFragment extends PreferenceFragmentCompat {
         setPreferencesFromResource(R.xml.preferences, rootKey);
 
         // 這行代碼只會在首次運行時設置默認值
-        PreferenceManager.setDefaultValues(getActivity(), R.xml.preferences, false);
+        PreferenceManager.setDefaultValues(requireActivity(), R.xml.preferences, false);
 
         // 可以添加一些邏輯來檢查開關的當前狀態
         SwitchPreferenceCompat vibrationPref = findPreference(getString(R.string.vibration));
