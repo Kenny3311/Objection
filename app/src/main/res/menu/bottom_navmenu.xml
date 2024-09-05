@@ -4,9 +4,6 @@
     <item android:title="Home"
         android:icon="@drawable/baseline_speaker_phone_24"
         android:id="@+id/home"/>
-    <item android:title="Script"
-        android:icon="@drawable/baseline_format_list_numbered_24"
-        android:id="@+id/script"/>
     <item android:title="Setting"
         android:icon="@drawable/baseline_settings_24"
         android:id="@+id/setting"/>

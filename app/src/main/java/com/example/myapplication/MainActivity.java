@@ -36,8 +36,6 @@ public class MainActivity extends AppCompatActivity {
             int itemId = item.getItemId();
             if (itemId == R.id.home) {
                 switchFragment(new HomeFragment());
-            } else if (itemId == R.id.script) {
-                switchFragment(new ScriptFragment());
             } else if (itemId == R.id.setting) {
                 switchFragment(new SettingFragment());
             }
