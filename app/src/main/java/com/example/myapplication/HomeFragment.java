@@ -22,6 +22,7 @@ import androidx.preference.PreferenceManager;
 import android.os.Handler;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,8 +63,11 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         //init
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         init(view);
-
-
+        if (savedInstanceState != null) {
+            seekBar.setProgress(savedInstanceState.getInt("seekbar_status",0));
+            voiceSpinner.setSelection(savedInstanceState.getInt("Voice_status",0));
+            bgmSpinner.setSelection(savedInstanceState.getInt("bgm_status",0));
+        }
         //function
         btnVoice.setOnClickListener(v -> {
             if (!voiceSpinner.getSelectedItem().toString().equals("None")) {
@@ -152,10 +156,10 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         });
         return view;
     }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        init(view);
     }
     private void init(View view) {
         Context context = requireContext();
@@ -177,7 +181,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         isVibrationEnabled = prefs.getBoolean(getString(R.string.vibration), true);
 
-        vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator = (Vibrator) context.getSystemService(VIBRATOR_SERVICE);
     }
 
 
@@ -225,6 +229,20 @@ public class HomeFragment extends Fragment implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("seekbar_status",seekBar.getProgress());
+        outState.putInt("Voice_status",voiceSpinner.getSelectedItemPosition());
+        outState.putInt("bgm_status",bgmSpinner.getSelectedItemPosition());
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
 
     }
 
