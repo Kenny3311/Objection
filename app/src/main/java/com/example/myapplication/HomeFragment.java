@@ -22,7 +22,6 @@ import androidx.preference.PreferenceManager;
 import android.os.Handler;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,6 +40,7 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     Spinner voiceSpinner, bgmSpinner;
     ImageView imageView;
     SensorManager sensorManager;
+    SensorEventListener sensorEventListener;
     SeekBar seekBar;
     Sensor sensor;
     Toast toast;
@@ -52,7 +52,6 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     private boolean isSensorActivated = false;
     final List<MediaPlayer> musicList = new ArrayList<>();
     private boolean isBgmPlaying = false;
-    private MediaPlayer currentVoicePlayer = null;
     private MediaPlayer currentBgmPlayer = null;
     private String previousBgm = "";
     Vibrator vibrator;
@@ -188,7 +187,9 @@ public class HomeFragment extends Fragment implements SensorEventListener {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+        }
     }
 
 
@@ -198,6 +199,22 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         if (sensorManager != null) {
             sensorManager.unregisterListener(this);
         }
+    }
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (hidden) {
+            // Fragment is hidden, stop sensor
+            sensorManager.unregisterListener(sensorEventListener);
+            isSensorActivated=false;
+        } else {
+            // Fragment is visible, start sensor
+            sensorManager.registerListener(sensorEventListener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+            if(btnStop.isEnabled()&&!btnContinue.isEnabled()){
+                isSensorActivated=true;
+            }
+        }
+
     }
 
     @Override
@@ -274,14 +291,12 @@ public class HomeFragment extends Fragment implements SensorEventListener {
             if (!selectedVoice.equals("None")) {
                 MediaPlayer voicePlayer = getVoicePlayer(selectedVoice);
                 if (voicePlayer != null) {
-                    currentVoicePlayer = voicePlayer;
                     musicList.add(voicePlayer);
                     //Toast.makeText(getActivity(), "Playing voice", Toast.LENGTH_SHORT).show();
                     voicePlayer.start();
                     imageView.setVisibility(View.VISIBLE);
                     shakeView(imageView);
                     voicePlayer.setOnCompletionListener(mp -> {
-                        currentVoicePlayer = null;
                         if (!selectedBgm.equals(previousBgm)){
                             stopAndReleaseAllPlayers(); // Stop all audio when voice played
                         }
@@ -338,7 +353,6 @@ public class HomeFragment extends Fragment implements SensorEventListener {
         }
         musicList.clear();
         isBgmPlaying = false;
-        currentVoicePlayer = null;
         currentBgmPlayer = null;
     }
     public void shakeView(View view) {
